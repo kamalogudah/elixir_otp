@@ -1,7 +1,9 @@
 # c("basic.ex")
-# {:ok, basic_pid} = Basic.start_link
-# Basic.get_the_state(basic_pid) or =>  "Hello"
-#  GenServer.call(basic_pid, {:get_the_state}) =>  "Hello"
+# {:ok, pid} = Basic.start_link
+# greeting = Basic.get_my_greeting(pid) => "Hello"
+# Basic.set_my_greeting(pid, "Sasa")  => %{greeting: "Sasa"}
+# greeting = Basic.get_my_greeting(pid) => "Sasa"
+#  GenServer.call(basic_pid, {:get_the_greeting}) =>  "Sasa"
 defmodule Basic do
   use GenServer
 
@@ -11,14 +13,26 @@ defmodule Basic do
 
   def init(initial_data) do
     greetings = %{:greeting => initial_data}
-    {:ok, initial_data}
+    {:ok, greetings}
   end
 
-  def get_the_state(process_id) do
-    GenServer.call(process_id, {:get_the_state})
+  def get_my_greeting(process_id) do
+    GenServer.call(process_id, {:get_the_greeting})
   end
 
-  def handle_call({:get_the_state}, _from, my_state) do
-    {:reply, my_state, my_state}
+  def set_my_greeting(process_id, new_greeting) do
+    GenServer.call(process_id, {:set_the_greeting, new_greeting})
+  end
+
+  # Callbacks
+
+  def handle_call({:get_the_greeting}, _from, my_state) do
+    current_greeting = Map.get(my_state, :greeting)
+    {:reply, current_greeting, my_state}
+  end
+
+  def handle_call({:set_the_greeting, the_new_greeting}, _from, my_state) do
+    new_state = Map.put(my_state, :greeting, the_new_greeting)
+    {:reply, new_state, new_state}
   end
 end
